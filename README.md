@@ -15,6 +15,7 @@ pip install -r requirements.txt
 python app.py
 ```
 Then open `http://localhost:8080`.
+Or you can just go to 'https://dom-dashboard-governers.onrender.com/'
 
 ## Deploy on Web (Render / Railway)
 - **Build Command**: `pip install -r requirements.txt`

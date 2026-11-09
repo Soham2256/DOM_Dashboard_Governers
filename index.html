@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Lab · Centrifugal Governor Workbench</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Top Instrument Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="brand-mark">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="2" x2="12" y2="22"/>
+                    <circle cx="12" cy="6" r="2"/>
+                    <line x1="12" y1="6" x2="5" y2="15"/>
+                    <line x1="12" y1="6" x2="19" y2="15"/>
+                    <circle cx="5" cy="15" r="2.2" fill="currentColor"/>
+                    <circle cx="19" cy="15" r="2.2" fill="currentColor"/>
+                    <rect x="9" y="17" width="6" height="3" rx="0.5"/>
+                </svg>
+            </div>
+            <div class="brand-title">
+                <span class="brand-name">DOM LAB · GOVERNOR WORKBENCH</span>
+                <span class="brand-sub">Dynamics of Machinery · Characteristics &amp; Virtual Twin</span>
+            </div>
+        </div>
+
+        <nav class="gov-switcher" id="govSwitcher" aria-label="Governor Type">
+            <span class="seg-thumb" id="govSegThumb" aria-hidden="true"></span>
+            <button class="gov-tab" data-type="watt" onclick="selectGovernor('watt')">Watt</button>
+            <button class="gov-tab" data-type="porter" onclick="selectGovernor('porter')">Porter</button>
+            <button class="gov-tab" data-type="proell" onclick="selectGovernor('proell')">Proell</button>
+            <button class="gov-tab active" data-type="hartnell" onclick="selectGovernor('hartnell')">Hartnell</button>
+        </nav>
+
+        <div class="topbar-actions">
+            <button class="tool-btn" onclick="loadLabManualPreset()" title="Load exact observations & parameters from lab manual (pg. 65-66)">
+                <i class="fas fa-book-open"></i> Lab Manual Preset
+            </button>
+            <button class="tool-btn" onclick="exportCSV()" title="Download calculation table as CSV">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workbench Grid -->
+    <div class="workbench">
+        <!-- Left Sidebar: Variable Parameters & Equations -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <span class="eyebrow">RIG PARAMETERS</span>
+                    <h2 id="currentType">Hartnell Governor</h2>
+                </div>
+                <div class="sidebar-header-right">
+                    <span class="type-pill" id="typeClassification">Spring Controlled</span>
+                    <button class="icon-btn" onclick="resetParams()" title="Reset to defaults">
+                        <i class="fas fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-scroll">
+                <!-- Watt Parameters -->
+                <div id="watt-params" class="param-group" style="display:none;">
+                    <div class="param-section-label">Mass &amp; Geometry</div>
+                    <div class="param-field">
+                        <label for="watt_ball_mass">Flyball Mass (m)</label>
+                        <div class="input-wrap"><input type="number" id="watt_ball_mass" value="2.0" step="0.1" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="watt_arm_length">Arm Length (L)</label>
+                        <div class="input-wrap"><input type="number" id="watt_arm_length" value="0.30" step="0.01" min="0.05"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-section-label">Speed Sweep</div>
+                    <div class="param-field">
+                        <label for="watt_N_min">Min Speed (N₁)</label>
+                        <div class="input-wrap"><input type="number" id="watt_N_min" value="100" step="10" min="10"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="watt_N_max">Max Speed (N₂)</label>
+                        <div class="input-wrap"><input type="number" id="watt_N_max" value="300" step="10" min="20"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="watt_N_steps">Samples</label>
+                        <div class="input-wrap"><input type="number" id="watt_N_steps" value="20" step="1" min="5" max="60"><span class="unit">pts</span></div>
+                    </div>
+                </div>
+
+                <!-- Porter Parameters -->
+                <div id="porter-params" class="param-group" style="display:none;">
+                    <div class="param-section-label">Masses</div>
+                    <div class="param-field">
+                        <label for="porter_ball_mass">Flyball Mass (m)</label>
+                        <div class="input-wrap"><input type="number" id="porter_ball_mass" value="2.0" step="0.1" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="porter_sleeve_mass">Sleeve Load (M)</label>
+                        <div class="input-wrap"><input type="number" id="porter_sleeve_mass" value="5.0" step="0.5" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-section-label">Linkage Geometry</div>
+                    <div class="param-field">
+                        <label for="porter_arm_length">Upper Arm (L)</label>
+                        <div class="input-wrap"><input type="number" id="porter_arm_length" value="0.30" step="0.01" min="0.05"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="porter_link_length">Lower Link (l)</label>
+                        <div class="input-wrap"><input type="number" id="porter_link_length" value="0.30" step="0.01" min="0.05"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="porter_q">Ratio q (tan β / tan α)</label>
+                        <div class="input-wrap"><input type="number" id="porter_q" value="1.0" step="0.1" min="0.1"><span class="unit">—</span></div>
+                    </div>
+                    <div class="param-section-label">Speed Sweep</div>
+                    <div class="param-field">
+                        <label for="porter_N_min">Min Speed (N₁)</label>
+                        <div class="input-wrap"><input type="number" id="porter_N_min" value="100" step="10" min="10"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="porter_N_max">Max Speed (N₂)</label>
+                        <div class="input-wrap"><input type="number" id="porter_N_max" value="300" step="10" min="20"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="porter_N_steps">Samples</label>
+                        <div class="input-wrap"><input type="number" id="porter_N_steps" value="20" step="1" min="5" max="60"><span class="unit">pts</span></div>
+                    </div>
+                </div>
+
+                <!-- Proell Parameters -->
+                <div id="proell-params" class="param-group" style="display:none;">
+                    <div class="param-section-label">Masses</div>
+                    <div class="param-field">
+                        <label for="proell_ball_mass">Flyball Mass (m)</label>
+                        <div class="input-wrap"><input type="number" id="proell_ball_mass" value="2.0" step="0.1" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_sleeve_mass">Sleeve Load (M)</label>
+                        <div class="input-wrap"><input type="number" id="proell_sleeve_mass" value="5.0" step="0.5" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-section-label">Extended Linkage</div>
+                    <div class="param-field">
+                        <label for="proell_arm_length">Upper Arm (L)</label>
+                        <div class="input-wrap"><input type="number" id="proell_arm_length" value="0.30" step="0.01" min="0.05"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_link_length">Lower Link (l)</label>
+                        <div class="input-wrap"><input type="number" id="proell_link_length" value="0.30" step="0.01" min="0.05"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_extension">Extension (e)</label>
+                        <div class="input-wrap"><input type="number" id="proell_extension" value="0.05" step="0.01" min="0.00"><span class="unit">m</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_q">Ratio q</label>
+                        <div class="input-wrap"><input type="number" id="proell_q" value="1.0" step="0.1" min="0.1"><span class="unit">—</span></div>
+                    </div>
+                    <div class="param-section-label">Speed Sweep</div>
+                    <div class="param-field">
+                        <label for="proell_N_min">Min Speed (N₁)</label>
+                        <div class="input-wrap"><input type="number" id="proell_N_min" value="100" step="10" min="10"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_N_max">Max Speed (N₂)</label>
+                        <div class="input-wrap"><input type="number" id="proell_N_max" value="300" step="10" min="20"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="proell_N_steps">Samples</label>
+                        <div class="input-wrap"><input type="number" id="proell_N_steps" value="20" step="1" min="5" max="60"><span class="unit">pts</span></div>
+                    </div>
+                </div>
+
+                <!-- Hartnell Parameters -->
+                <div id="hartnell-params" class="param-group">
+                    <div class="param-section-label">Masses</div>
+                    <div class="param-field">
+                        <label for="hartnell_ball_mass">Ball Mass (m)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_ball_mass" value="0.45" step="0.05" min="0.05"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_sleeve_mass">Sleeve Mass (m₁)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_sleeve_mass" value="2.1" step="0.1" min="0.1"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_mass_added">Added Mass (m₂)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_mass_added" value="0.14" step="0.02" min="0"><span class="unit">kg</span></div>
+                    </div>
+                    <div class="param-section-label">Bell-Crank &amp; Spring</div>
+                    <div class="param-field">
+                        <label for="hartnell_vertical_arm">Vertical Arm (a)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_vertical_arm" value="75" step="1" min="10"><span class="unit">mm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_horizontal_arm">Horizontal Arm (b)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_horizontal_arm" value="95" step="1" min="10"><span class="unit">mm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_initial_radius">Initial Radius (R₀)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_initial_radius" value="132.5" step="0.5" min="10"><span class="unit">mm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_free_length">Free Spring (L₀)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_free_length" value="154" step="1" min="10"><span class="unit">mm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_compressed_length">Compressed (L₁)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_compressed_length" value="145" step="1" min="5"><span class="unit">mm</span></div>
+                    </div>
+                    <div class="param-section-label">Speed Sweep</div>
+                    <div class="param-field">
+                        <label for="hartnell_N_min">Min Speed (N₁)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_N_min" value="150" step="10" min="10"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_N_max">Max Speed (N₂)</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_N_max" value="350" step="10" min="20"><span class="unit">rpm</span></div>
+                    </div>
+                    <div class="param-field">
+                        <label for="hartnell_N_steps">Samples</label>
+                        <div class="input-wrap"><input type="number" id="hartnell_N_steps" value="20" step="1" min="5" max="60"><span class="unit">pts</span></div>
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="primary-btn" onclick="runCalculation()">
+                    <i class="fas fa-play"></i> Compute &amp; Update Analysis
+                </button>
+
+                <!-- Governing Equations Reference -->
+                <div class="equations-box" id="formula-panel">
+                    <div class="param-section-label">Governing Equations</div>
+                    <div id="formula-content" class="formula-list"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Stage -->
+        <main class="main-stage">
+            <!-- Digital Telemetry Strip -->
+            <section class="telemetry-strip" id="kpi-cards">
+                <div class="metric-cell">
+                    <span class="metric-label">Sensitivity</span>
+                    <span class="metric-val" id="kpiSensitivity">—</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="metric-label">Speed Range (N₂ − N₁)</span>
+                    <span class="metric-val" id="kpiRange">—</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="metric-label">Mean Speed</span>
+                    <span class="metric-val" id="kpiMean">—</span>
+                </div>
+                <div class="metric-cell">
+                    <span class="metric-label" id="kpiFourthLabel">Overall Stiffness</span>
+                    <span class="metric-val accent-amber" id="kpiFourth">—</span>
+                </div>
+            </section>
+
+            <!-- Workspace View Navigation -->
+            <div class="workspace-tabs" id="workspaceTabs">
+                <span class="ws-tab-indicator" id="wsTabIndicator" aria-hidden="true"></span>
+                <button class="ws-tab active" data-tab="twin" onclick="switchWorkspaceTab('twin')">
+                    <i class="fas fa-cube"></i> 3D Virtual Twin
+                </button>
+                <button class="ws-tab" data-tab="charts" onclick="switchWorkspaceTab('charts')">
+                    <i class="fas fa-chart-line"></i> Characteristic Curves
+                </button>
+                <button class="ws-tab" data-tab="matplotlib" onclick="switchWorkspaceTab('matplotlib')">
+                    <i class="fab fa-python"></i> Python Matplotlib 3D
+                </button>
+                <button class="ws-tab" data-tab="table" onclick="switchWorkspaceTab('table')">
+                    <i class="fas fa-table"></i> Observation &amp; Lab Log
+                    <span class="log-badge" id="recordedCountBadge" style="display:none;">0</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: 3D Virtual Twin + Live Variac + 2D Schematic -->
+            <section id="tab-twin" class="tab-panel active">
+                <div class="twin-workbench-grid">
+                    <!-- 3D Viewport Card -->
+                    <div class="panel-box twin-viewport-box" id="virtual-twin-section">
+                        <div class="box-toolbar">
+                            <div class="box-title">
+                                <span class="status-dot"></span>
+                                <span>3D KINEMATIC RIG</span>
+                                <span class="muted-hint">Orbit: Drag · Zoom: Scroll</span>
+                            </div>
+                            <div class="cam-group">
+                                <button class="mini-btn" onclick="setTwinCameraView('iso')">ISO</button>
+                                <button class="mini-btn" onclick="setTwinCameraView('front')">FRONT</button>
+                                <button class="mini-btn" onclick="setTwinCameraView('top')">TOP</button>
+                                <button class="mini-btn" onclick="toggleTwinPause()" id="pauseTwinBtn">
+                                    <i class="fas fa-pause"></i> Pause
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="twin-canvas-container" class="twin-canvas-container"></div>
+
+                        <!-- Motor Variac Controller Bar -->
+                        <div class="variac-bar">
+                            <div class="variac-control">
+                                <div class="variac-label">
+                                    <span>VARIAC SPEED CONTROL</span>
+                                    <span class="variac-readout"><span id="speedValue">250</span> <small>RPM</small></span>
+                                </div>
+                                <input type="range" id="speedSlider" min="0" max="450" value="250"
+                                       oninput="onSpeedSliderChange(this.value)">
+                            </div>
+                            <div class="variac-buttons">
+                                <button class="action-btn" onclick="toggleAutoSpeed()" id="autoSpeedBtn">
+                                    <i class="fas fa-wave-square"></i> Auto Ramp
+                                </button>
+                                <button class="action-btn action-amber" onclick="recordVariacReading()" title="Log current stabilized speed & measurements into Observation Table">
+                                    <i class="fas fa-plus"></i> Record Reading
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Telemetry Readout Bar -->
+                        <div id="twin-info" class="twin-info">Initializing 3D Virtual Twin...</div>
+                        <div id="variac-notice" class="variac-notice" style="display:none;"></div>
+
+                        <div class="twin-legend">
+                            <span class="legend-item"><span class="legend-dot" style="background:#ff453a;"></span> Flyball</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#0a84ff;"></span> Arms</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#ff9f0a;"></span> Sleeve</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#5e5ce6;"></span> Links</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#30d158;"></span> Spring / Fc</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#64d2ff;"></span> Extension / Orbit</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: 2D Schematic + Quick Procedure Guide -->
+                    <div class="twin-side-column">
+                        <div class="panel-box schematic-box" id="schematic-section">
+                            <div class="box-toolbar">
+                                <div class="box-title"><span>TECHNICAL SCHEMATIC</span></div>
+                                <span class="muted-hint">2D Force Diagram</span>
+                            </div>
+                            <canvas id="schematicCanvas" width="480" height="360"></canvas>
+                        </div>
+
+                        <div class="panel-box procedure-box">
+                            <div class="box-toolbar">
+                                <div class="box-title"><span>LAB PROCEDURE</span></div>
+                                <span class="muted-hint">Variac Protocol</span>
+                            </div>
+                            <ol class="procedure-list">
+                                <li>Select governor rig from the top toolbar and set physical dimensions on the left.</li>
+                                <li>Slowly increase spindle speed with the <strong>Variac</strong> until the sleeve lifts.</li>
+                                <li>Click <strong>Record Reading</strong> at each stabilized speed (always increase speed monotonically).</li>
+                                <li>Inspect characteristic curves, Matplotlib 3D simulation, and observation table across tabs.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: Characteristic Curves -->
+            <section id="tab-charts" class="tab-panel">
+                <div id="charts-grid" class="charts-grid">
+                    <div class="panel-box chart-card">
+                        <h4><span id="chart1Title">Height vs Speed</span></h4>
+                        <div class="chart-wrap"><canvas id="chart1"></canvas></div>
+                    </div>
+                    <div class="panel-box chart-card">
+                        <h4><span id="chart2Title">Radius vs Speed</span></h4>
+                        <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+                    </div>
+                    <div class="panel-box chart-card">
+                        <h4><span id="chart3Title">Centrifugal Force vs Speed</span></h4>
+                        <div class="chart-wrap"><canvas id="chart3"></canvas></div>
+                    </div>
+                    <div class="panel-box chart-card">
+                        <h4><span id="chart4Title">Controlling Force vs Radius</span></h4>
+                        <div class="chart-wrap"><canvas id="chart4"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: Python Matplotlib 3D Simulation -->
+            <section id="tab-matplotlib" class="tab-panel">
+                <div id="matplotlib-sim-section" class="panel-box matplotlib-sim-section">
+                    <div class="box-toolbar mpl-toolbar">
+                        <div class="box-title">
+                            <i class="fab fa-python" style="color:#0a84ff;"></i>
+                            <span>PYTHON MATPLOTLIB 3D ENGINE</span>
+                            <span class="muted-hint">NumPy + Matplotlib Agg 3D Renderer</span>
+                        </div>
+                        <div class="mpl-actions">
+                            <button class="mini-btn active" id="mplBtnSnapshot" onclick="loadMatplotlibSim('snapshot')">
+                                Operating Point (3D + Curve)
+                            </button>
+                            <button class="mini-btn" id="mplBtnMultispeed" onclick="loadMatplotlibSim('multispeed')">
+                                Multi-Speed 3D Progression
+                            </button>
+                            <button class="mini-btn mini-btn-amber" id="mplBtnAnimation" onclick="loadMatplotlibSim('animation')">
+                                Render 3D Animated GIF
+                            </button>
+                            <a id="mplDownloadBtn" class="mini-btn mini-btn-green" download="governor_3d_sim.png" style="display:none;">
+                                <i class="fas fa-download"></i> Save
+                            </a>
+                        </div>
+                    </div>
+                    <div id="mpl-viewer" class="mpl-viewer">
+                        <div id="mpl-loading" class="mpl-loading" style="display:none;">
+                            <div class="spinner"></div>
+                            <span id="mpl-loading-text">Rendering Python Matplotlib 3D Simulation...</span>
+                        </div>
+                        <img id="mpl-image" class="mpl-image" alt="Python Matplotlib 3D Governor Simulation" style="display:none;" />
+                        <div id="mpl-placeholder" class="mpl-placeholder">
+                            <p>Select a Matplotlib rendering mode above to generate a Python 3D plot or animated GIF from your current parameters.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: Observation Table & Experimental Log -->
+            <section id="tab-table" class="tab-panel">
+                <!-- User's Recorded Variac Readings -->
+                <div class="panel-box table-card" id="recorded-log-section" style="margin-bottom: 1rem;">
+                    <div class="box-toolbar">
+                        <div class="box-title">
+                            <span>EXPERIMENTAL VARIAC LOG (USER RECORDED)</span>
+                            <span class="muted-hint">Recorded via "+ Record Reading" on the Variac</span>
+                        </div>
+                        <button class="mini-btn" onclick="clearRecordedLog()">Clear Log</button>
+                    </div>
+                    <div id="recorded-empty" class="empty-log-msg">
+                        No manual readings recorded yet. Go to <strong>3D Virtual Twin</strong>, adjust the Variac speed slider, and click <strong>+ Record Reading</strong>.
+                    </div>
+                    <div class="table-wrapper" id="recorded-table-wrap" style="display:none;">
+                        <table class="data-table">
+                            <thead id="recordedHead"></thead>
+                            <tbody id="recordedBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analytical Sweep Table -->
+                <div id="data-table-section" class="panel-box table-card">
+                    <div class="box-toolbar">
+                        <div class="box-title">
+                            <span>ANALYTICAL OBSERVATION &amp; CALCULATION TABLE</span>
+                        </div>
+                        <button class="mini-btn" onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="dataTable" class="data-table">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="virtual_twin.js"></script>
+    <script src="governor.js"></script>
+</body>
+</html>

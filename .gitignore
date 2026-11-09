@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.jpeg
+*.jpg
+hartnell_3d.png
+hartnell_animation.gif
+.DS_Store
+Thumbs.db

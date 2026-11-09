@@ -1,0 +1,1111 @@
+/* =============================================
+   DOM Lab · Governor Workbench
+   Apple Pro Dark UI · macOS Vibrancy & Hairlines
+   ============================================= */
+
+:root {
+    --bg-canvas: #0b0b0d;
+    --bg-panel: #161618;
+    --bg-surface: #1c1c1e;
+    --bg-elevated: #262629;
+    --bg-input: #111113;
+    --bg-hover: rgba(255, 255, 255, 0.06);
+
+    /* Ultra-crisp macOS hairline strokes & top inner edge */
+    --border: rgba(255, 255, 255, 0.085);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --inner-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+    --panel-shadow: 0 2px 14px rgba(0, 0, 0, 0.32), var(--inner-edge);
+
+    /* Apple Label Hierarchy */
+    --text-primary: #f5f5f7;
+    --text-secondary: rgba(235, 235, 245, 0.65);
+    --text-muted: rgba(235, 235, 245, 0.38);
+
+    /* Apple System Dark Colors */
+    --blue: #0a84ff;
+    --blue-soft: rgba(10, 132, 255, 0.14);
+    --blue-border: rgba(10, 132, 255, 0.38);
+
+    --teal: #64d2ff;
+    --teal-soft: rgba(100, 210, 255, 0.12);
+
+    --orange: #ff9f0a;
+    --orange-soft: rgba(255, 159, 10, 0.14);
+    --orange-border: rgba(255, 159, 10, 0.35);
+
+    --green: #30d158;
+    --green-soft: rgba(48, 209, 88, 0.14);
+
+    --indigo: #5e5ce6;
+    --red: #ff453a;
+    --red-soft: rgba(255, 69, 58, 0.15);
+
+    /* Apple Spring Curves */
+    --spring: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', sans-serif;
+    --font-mono: 'SF Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    --radius: 8px;
+    --radius-lg: 12px;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Calm Apple dark studio surface without grid noise */
+body {
+    background-image:
+        radial-gradient(ellipse 85% 45% at 50% -10%, rgba(255, 255, 255, 0.03), transparent 70%);
+    background-attachment: fixed;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* ── Top Instrument Bar (macOS Unified Toolbar) ── */
+.topbar {
+    height: 54px;
+    flex-shrink: 0;
+    background: rgba(22, 22, 24, 0.80);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #2a2a2e 0%, #1c1c1e 100%);
+    border: 1px solid var(--border-strong);
+    box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.16), 0 1px 4px rgba(0, 0, 0, 0.4);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+}
+
+.brand-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: -0.005em;
+}
+
+/* macOS NSSegmentedControl with sliding pill */
+.gov-switcher {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(118, 118, 128, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.seg-thumb {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    height: calc(100% - 6px);
+    width: 68px;
+    border-radius: 6.5px;
+    background: #3a3a3d;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.22);
+    transition: transform 0.34s var(--spring), width 0.34s var(--spring), opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.gov-tab {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    padding: 5.5px 15px;
+    border-radius: 6.5px;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), transform 0.16s var(--spring);
+}
+
+.gov-tab:hover {
+    color: var(--text-primary);
+}
+
+.gov-tab.active {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.gov-tab:active {
+    transform: scale(0.96);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tool-btn {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.18s var(--ease), border-color 0.18s var(--ease), transform 0.16s var(--spring);
+}
+
+.tool-btn:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--border-strong);
+}
+
+.tool-btn:active {
+    transform: scale(0.965);
+}
+
+/* ── Main 2-Column Workbench ── */
+.workbench {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 296px 1fr;
+    min-height: 0;
+}
+
+/* ── Left Inspector Sidebar ── */
+.sidebar {
+    background: rgba(22, 22, 24, 0.72);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 54px);
+    position: sticky;
+    top: 54px;
+}
+
+.sidebar-header {
+    padding: 15px 16px 13px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.sidebar-header h2 {
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.sidebar-header-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.type-pill {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--blue-soft);
+    border: 1px solid rgba(10, 132, 255, 0.25);
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.icon-btn {
+    width: 27px;
+    height: 27px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: background 0.16s ease, color 0.16s ease, transform 0.16s var(--spring);
+}
+
+.icon-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--border-strong);
+}
+
+.icon-btn:active {
+    transform: scale(0.94);
+}
+
+.sidebar-scroll {
+    padding: 12px 16px 22px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.param-section-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 14px 0 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+}
+
+.param-group > .param-section-label:first-child {
+    margin-top: 2px;
+}
+
+.param-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.param-field label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+}
+
+.input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    width: 112px;
+    overflow: hidden;
+    transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.input-wrap:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.26);
+}
+
+.input-wrap input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    padding: 5.5px 6px 5.5px 8px;
+    text-align: right;
+}
+
+.input-wrap .unit {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 0 7px 0 4px;
+    border-left: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.025);
+    line-height: 27px;
+}
+
+.primary-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 9px 14px;
+    background: linear-gradient(180deg, #1a8cff 0%, #0a84ff 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 9px;
+    box-shadow: 0 2px 10px rgba(10, 132, 255, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: transform 0.18s var(--spring), filter 0.18s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 4px 16px rgba(10, 132, 255, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.primary-btn:active {
+    transform: scale(0.975);
+}
+
+.equations-box {
+    margin-top: 14px;
+}
+
+.formula-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.formula-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.formula-item .formula-label {
+    font-family: var(--font-sans);
+    font-size: 9.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+/* ── Main Stage ── */
+.main-stage {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-width: 0;
+}
+
+/* Telemetry Strip */
+.telemetry-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 11px;
+}
+
+.metric-cell {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--panel-shadow);
+    padding: 11px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: border-color 0.22s var(--ease), transform 0.22s var(--spring);
+}
+
+.metric-cell:hover {
+    border-color: var(--border-strong);
+}
+
+.metric-label {
+    font-size: 10.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.metric-val {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+}
+
+.metric-val.accent-amber {
+    color: var(--teal);
+}
+
+/* Workspace Tabs with Spring Underline */
+.workspace-tabs {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+.ws-tab-indicator {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    width: 120px;
+    border-radius: 2px 2px 0 0;
+    background: var(--blue);
+    box-shadow: 0 0 8px rgba(10, 132, 255, 0.45);
+    transition: transform 0.34s var(--spring), width 0.34s var(--spring);
+    pointer-events: none;
+}
+
+.ws-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: -0.008em;
+    padding: 9px 14px 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: color 0.18s var(--ease), transform 0.15s var(--spring);
+}
+
+.ws-tab:hover {
+    color: var(--text-primary);
+}
+
+.ws-tab.active {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.ws-tab.active i {
+    color: var(--blue);
+}
+
+.ws-tab:active {
+    transform: scale(0.97);
+}
+
+.log-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--blue);
+    color: #ffffff;
+    padding: 0.5px 6px;
+    border-radius: 999px;
+}
+
+.tab-panel {
+    display: none;
+}
+
+@keyframes applePanelIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tab-panel.active {
+    display: block;
+    animation: applePanelIn 0.28s var(--spring) both;
+}
+
+/* ── Elevated Squircle Panel Boxes ── */
+.panel-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--panel-shadow);
+    overflow: hidden;
+}
+
+.box-toolbar {
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.025);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.box-title {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(48, 209, 88, 0.55);
+    display: inline-block;
+}
+
+.muted-hint {
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.cam-group,
+.mpl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.mini-btn {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4.5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.16s var(--ease), border-color 0.16s var(--ease), color 0.16s var(--ease), transform 0.14s var(--spring);
+}
+
+.mini-btn:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.mini-btn:active {
+    transform: scale(0.955);
+}
+
+.mini-btn.active {
+    background: var(--blue-soft);
+    border-color: var(--blue-border);
+    color: var(--blue);
+    font-weight: 600;
+}
+
+.mini-btn-amber {
+    border-color: var(--blue-border);
+    color: var(--blue);
+}
+
+.mini-btn-amber:hover,
+.mini-btn-amber.active {
+    background: var(--blue);
+    color: #ffffff;
+    border-color: var(--blue);
+}
+
+.mini-btn-green {
+    border-color: rgba(48, 209, 88, 0.36);
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+/* ── Tab 1: Virtual Twin Workbench Grid ── */
+.twin-workbench-grid {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 13px;
+    align-items: start;
+}
+
+.twin-canvas-container {
+    width: 100%;
+    height: 410px;
+    background: #111113;
+    position: relative;
+}
+
+/* Variac Motor Bar (Apple Slider + Tactile Pills) */
+.variac-bar {
+    padding: 12px 15px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.variac-control {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.variac-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+.variac-readout {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.variac-readout small {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+#speedSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    outline: none;
+    cursor: pointer;
+}
+
+#speedSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+    transition: transform 0.2s var(--spring), box-shadow 0.2s var(--ease);
+}
+
+#speedSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+#speedSlider::-webkit-slider-thumb:active {
+    transform: scale(1.16);
+    box-shadow: 0 2px 10px rgba(10, 132, 255, 0.45), 0 0 0 4px rgba(10, 132, 255, 0.22);
+}
+
+#speedSlider::-moz-range-thumb {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.variac-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.065);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 13px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.18s var(--ease), border-color 0.18s var(--ease), transform 0.16s var(--spring);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.11);
+    border-color: var(--border-strong);
+}
+
+.action-btn:active {
+    transform: scale(0.965);
+}
+
+.action-btn.active {
+    background: var(--red-soft);
+    border-color: rgba(255, 69, 58, 0.45);
+    color: var(--red);
+}
+
+.action-amber {
+    background: var(--orange-soft);
+    border-color: var(--orange-border);
+    color: #ffb340;
+    font-weight: 600;
+}
+
+.action-amber:hover {
+    background: var(--orange);
+    color: #0b0b0d;
+    border-color: var(--orange);
+}
+
+/* Telemetry HUD bar inside Twin */
+.twin-info {
+    padding: 10px 14px;
+    background: var(--bg-panel);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+}
+
+.hud-chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    padding: 3.5px 9px;
+    border-radius: 6px;
+    color: var(--text-primary);
+}
+
+.hud-chip strong {
+    font-family: var(--font-sans);
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.hud-state {
+    margin-left: auto;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--teal-soft);
+    border: 1px solid rgba(100, 210, 255, 0.25);
+    padding: 3.5px 10px;
+    border-radius: 999px;
+}
+
+.variac-notice {
+    padding: 8px 14px;
+    font-size: 11.5px;
+    background: var(--blue-soft);
+    border-top: 1px solid var(--blue-border);
+    color: #70b7ff;
+    animation: applePanelIn 0.24s var(--spring) both;
+}
+
+.twin-legend {
+    padding: 9px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    background: var(--bg-panel);
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Right Side Column in Twin Tab */
+.twin-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+#schematicCanvas {
+    width: 100%;
+    height: 360px;
+    display: block;
+    background: #141416;
+}
+
+.procedure-list {
+    padding: 13px 16px 15px 30px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6.5px;
+}
+
+.procedure-list strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ── Tab 2: Characteristic Curves ── */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+}
+
+.chart-card {
+    padding: 15px;
+}
+
+.chart-card h4 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.chart-wrap {
+    position: relative;
+    height: 265px;
+}
+
+/* ── Tab 3: Python Matplotlib 3D ── */
+.mpl-viewer {
+    min-height: 410px;
+    background: #141416;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+}
+
+.mpl-image {
+    width: 100%;
+    height: auto;
+    max-height: 560px;
+    object-fit: contain;
+    border-radius: 8px;
+    animation: applePanelIn 0.3s var(--spring) both;
+}
+
+.mpl-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.mpl-placeholder {
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 420px;
+}
+
+.spinner {
+    width: 26px;
+    height: 26px;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Tab 4: Tables ── */
+.empty-log-msg {
+    padding: 20px 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+}
+
+.data-table th {
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 7.5px 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    color: var(--text-primary);
+}
+
+.data-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.045);
+}
+
+/* ── Scrollbar (macOS slim) ── */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1180px) {
+    .twin-workbench-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 960px) {
+    .workbench {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    .telemetry-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .topbar {
+        height: auto;
+        padding: 10px 14px;
+        flex-wrap: wrap;
+    }
+}
